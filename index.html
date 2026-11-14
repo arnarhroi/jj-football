@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1a33">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="JJ Football">
+  <meta name="description" content="Swipe-to-shoot football: practice your finishing, beat the challenges and win the Penalty Cup.">
+  <title>JJ Football</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <!-- In-game HUD -->
+  <div id="hud" class="hidden">
+    <div class="topbar">
+      <button id="pauseBtn" class="icon-btn" aria-label="Pause">❚❚</button>
+      <div class="hud-left" id="hudLeft"></div>
+      <div class="hud-center" id="hudCenter"></div>
+      <div class="hud-right" id="hudRight"></div>
+    </div>
+    <div id="shootout" class="hidden"></div>
+    <div id="banner" class="banner"><div class="banner-main"></div><div class="banner-sub"></div></div>
+    <div id="hint" class="hint"></div>
+    <button id="spotBtn" class="pill-btn hidden">⟳ New spot</button>
+  </div>
+
+  <!-- Main menu -->
+  <section id="menu" class="screen">
+    <div class="logo">
+      <div class="logo-ball"></div>
+      <h1>JJ <span>FOOTBALL</span></h1>
+      <p class="tag">Swipe. Curl. Score.</p>
+    </div>
+    <div class="menu-buttons">
+      <button class="big-btn primary" data-go="cupTeams">🏆 Penalty Cup<small>Win the tournament</small></button>
+      <button class="big-btn" data-go="practiceSetup">⚽ Practice<small>Free shooting</small></button>
+      <div class="row2">
+        <button class="big-btn alt" data-start="target">🎯 Targets<small id="bestTarget">60 s challenge</small></button>
+        <button class="big-btn alt" data-start="crossbar">🥅 Crossbar<small id="bestCrossbar">10 balls</small></button>
+      </div>
+      <button class="big-btn alt" data-start="freekick">🧱 Free Kick Challenge<small id="bestFreekick">10 free kicks vs wall + keeper</small></button>
+    </div>
+    <div class="menu-foot">
+      <span id="trophyCount">🏆 0</span>
+      <button class="link-btn" data-go="howto">How to play</button>
+      <button class="link-btn" data-go="settings">Settings</button>
+    </div>
+  </section>
+
+  <!-- Practice setup -->
+  <section id="practiceSetup" class="screen hidden">
+    <h2>Practice</h2>
+    <label class="field-label">Ball position</label>
+    <div class="chips" data-group="pos">
+      <button data-v="penalty" class="on">Penalty</button>
+      <button data-v="edge">Edge of box</button>
+      <button data-v="freekick">Free kick</button>
+      <button data-v="random">Random</button>
+    </div>
+    <label class="field-label">Goalkeeper</label>
+    <div class="chips" data-group="keeper">
+      <button data-v="off">None</button>
+      <button data-v="easy">Easy</button>
+      <button data-v="medium" class="on">Medium</button>
+      <button data-v="hard">Hard</button>
+    </div>
+    <button class="big-btn primary" id="startPractice">Start practice</button>
+    <button class="link-btn back" data-go="menu">‹ Back</button>
+  </section>
+
+  <!-- Cup: team select -->
+  <section id="cupTeams" class="screen hidden">
+    <h2>Penalty Cup</h2>
+    <p class="sub">Pick your nation. Win three shoot-outs to lift the trophy.</p>
+    <div id="teamGrid" class="team-grid"></div>
+    <label class="field-label">Difficulty</label>
+    <div class="chips" data-group="cupDiff">
+      <button data-v="easy">Amateur</button>
+      <button data-v="medium" class="on">Pro</button>
+      <button data-v="hard">World Class</button>
+    </div>
+    <button class="big-btn primary" id="startCup" disabled>Start tournament</button>
+    <button class="link-btn back" data-go="menu">‹ Back</button>
+  </section>
+
+  <!-- Cup: bracket -->
+  <section id="bracket" class="screen hidden">
+    <h2 id="bracketTitle">Quarter-final</h2>
+    <div id="bracketView" class="bracket"></div>
+    <button class="big-btn primary" id="playMatch">Play</button>
+    <button class="link-btn back" id="quitCup">Quit tournament</button>
+  </section>
+
+  <!-- Results -->
+  <section id="results" class="screen hidden">
+    <div id="resultsIcon" class="result-icon">🏁</div>
+    <h2 id="resultsTitle">Finished</h2>
+    <div id="resultsScore" class="result-score">0</div>
+    <p id="resultsDetail" class="sub"></p>
+    <p id="resultsBest" class="best"></p>
+    <button class="big-btn primary" id="resultsRetry">Play again</button>
+    <button class="link-btn back" data-go="menu">Main menu</button>
+  </section>
+
+  <!-- Pause -->
+  <section id="pause" class="screen modal hidden">
+    <h2>Paused</h2>
+    <button class="big-btn primary" id="resumeBtn">Resume</button>
+    <button class="big-btn" id="restartBtn">Restart</button>
+    <button class="big-btn alt" id="quitBtn">Quit to menu</button>
+  </section>
+
+  <!-- Settings -->
+  <section id="settings" class="screen hidden">
+    <h2>Settings</h2>
+    <label class="toggle"><span>Sound</span><input type="checkbox" id="optSound" checked><i></i></label>
+    <label class="toggle"><span>Vibration</span><input type="checkbox" id="optVibrate" checked><i></i></label>
+    <button class="big-btn alt" id="resetStats">Reset records</button>
+    <button class="link-btn back" data-go="menu">‹ Back</button>
+  </section>
+
+  <!-- How to play -->
+  <section id="howto" class="screen hidden">
+    <h2>How to play</h2>
+    <div class="howto">
+      <div class="tip"><b>👆 Swipe to shoot</b><span>Put your finger on the ball and flick towards where you want it to go. A short swipe keeps it low, a long one goes high.</span></div>
+      <div class="tip"><b>💨 Speed = power</b><span>Flick fast to blast it past the keeper — but too hard and it might fly over.</span></div>
+      <div class="tip"><b>🌀 Curve it</b><span>Bend your swipe like a banana to curl the ball round the wall.</span></div>
+      <div class="tip"><b>🧤 Be the keeper</b><span>In the Penalty Cup you also save penalties: tap the spot in the goal where you want to dive. Tap early to guess, or late to react!</span></div>
+    </div>
+    <button class="big-btn primary" data-go="menu">Got it!</button>
+  </section>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
