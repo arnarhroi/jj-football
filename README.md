@@ -58,3 +58,13 @@ fly deploy
 ```
 
 The game is then live at `https://<your-app-name>.fly.dev`. If you add a new file to the game, also list it under `[[files]]` in `fly.toml`.
+
+### Automatic deploys with GitHub Actions
+
+`.github/workflows/fly-deploy.yml` deploys the game on every push to `main`. You can also run it by hand from the **Actions** tab.
+
+One-time setup:
+
+1. Create a Fly token. For the first deploy, the token must be able to create the app, so use an org token: `fly tokens create org`. After the app exists, an app-only token is enough: `fly tokens create deploy -a jj-football`.
+2. In GitHub, go to **Settings → Secrets and variables → Actions** and add a repository secret named `FLY_API_TOKEN` containing the whole token, including the `FlyV1` prefix.
+3. Optional: if your Fly organisation isn't `personal`, add a repository variable named `FLY_ORG` with its slug.
