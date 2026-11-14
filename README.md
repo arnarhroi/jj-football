@@ -47,3 +47,14 @@ js/main.js            menus, settings, saved records
 sw.js                 service worker for offline play
 manifest.webmanifest  PWA manifest
 ```
+
+## Deploy to Fly.io
+
+`fly.toml` serves the game with a stock nginx image. Fly copies the game files into the machine, so no Docker build is needed.
+
+```sh
+fly launch --no-deploy --copy-config --name <your-app-name>   # once; skip if the app already exists
+fly deploy
+```
+
+The game is then live at `https://<your-app-name>.fly.dev`. If you add a new file to the game, also list it under `[[files]]` in `fly.toml`.
