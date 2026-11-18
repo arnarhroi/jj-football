@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b3159"/><stop offset="1" stop-color="#0b1a33"/></linearGradient>
+    <radialGradient id="ball" cx="0.38" cy="0.35" r="0.7"><stop offset="0" stop-color="#fff"/><stop offset="0.7" stop-color="#e6e6e6"/><stop offset="1" stop-color="#9a9a9a"/></radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <rect y="330" width="512" height="182" fill="#2f8a3b"/>
+  <g fill="none" stroke="#fff" stroke-width="14" stroke-linecap="round">
+    <path d="M96 330 V150 H416 V330"/>
+  </g>
+  <g stroke="rgba(255,255,255,.35)" stroke-width="4">
+    <path d="M136 150v180M176 150v180M216 150v180M256 150v180M296 150v180M336 150v180M376 150v180M96 190h320M96 230h320M96 270h320M96 310h320"/>
+  </g>
+  <circle cx="256" cy="380" r="92" fill="url(#ball)"/>
+  <g fill="#1d1d1d">
+    <polygon points="256,342 290,366 277,406 235,406 222,366"/>
+    <polygon points="180,360 200,345 210,372 192,392 172,385"/>
+    <polygon points="332,360 312,345 302,372 320,392 340,385"/>
+    <polygon points="230,452 245,425 267,425 282,452 256,470"/>
+  </g>
+  <text x="256" y="112" font-family="system-ui, sans-serif" font-size="78" font-weight="900" font-style="italic" fill="#ffd23f" text-anchor="middle">JJ</text>
+</svg>

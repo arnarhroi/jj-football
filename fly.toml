@@ -1,0 +1,91 @@
+# Fly.io deployment: a stock nginx image serves the static game files.
+# No image build is needed; Fly copies each file listed under [[files]] into the machine.
+# If you add a new file to the game, add it here as well.
+app = "jj-football"
+primary_region = "ams"
+
+[build]
+  image = "nginx:1.27-alpine"
+
+[http_service]
+  internal_port = 80
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
+
+[[files]]
+  guest_path = "/usr/share/nginx/html/index.html"
+  local_path = "index.html"
+
+[[files]]
+  guest_path = "/usr/share/nginx/html/manifest.webmanifest"
+  local_path = "manifest.webmanifest"
+
+[[files]]
+  guest_path = "/usr/share/nginx/html/sw.js"
+  local_path = "sw.js"
+
+[[files]]
+  guest_path = "/usr/share/nginx/html/css/style.css"
+  local_path = "css/style.css"
+
+[[files]]
+  guest_path = "/usr/share/nginx/html/js/audio.js"
+  local_path = "js/audio.js"
+
+[[files]]
+  guest_path = "/usr/share/nginx/html/js/game.js"
+  local_path = "js/game.js"
+
+[[files]]
+  guest_path = "/usr/share/nginx/html/js/main.js"
+  local_path = "js/main.js"
+
+[[files]]
+  guest_path = "/usr/share/nginx/html/js/modes.js"
+  local_path = "js/modes.js"
+
+[[files]]
+  guest_path = "/usr/share/nginx/html/js/render.js"
+  local_path = "js/render.js"
+
+[[files]]
+  guest_path = "/usr/share/nginx/html/js/world.js"
+  local_path = "js/world.js"
+
+[[files]]
+  guest_path = "/usr/share/nginx/html/icons/icon-192.png"
+  local_path = "icons/icon-192.png"
+
+[[files]]
+  guest_path = "/usr/share/nginx/html/icons/icon-512.png"
+  local_path = "icons/icon-512.png"
+
+[[files]]
+  guest_path = "/usr/share/nginx/html/icons/icon.svg"
+  local_path = "icons/icon.svg"
+
+[[files]]
+  guest_path = "/usr/share/nginx/html/js/match/competitions.js"
+  local_path = "js/match/competitions.js"
+
+[[files]]
+  guest_path = "/usr/share/nginx/html/js/match/engine.js"
+  local_path = "js/match/engine.js"
+
+[[files]]
+  guest_path = "/usr/share/nginx/html/js/match/mode.js"
+  local_path = "js/match/mode.js"
+
+[[files]]
+  guest_path = "/usr/share/nginx/html/js/match/render.js"
+  local_path = "js/match/render.js"
+
+[[files]]
+  guest_path = "/usr/share/nginx/html/js/match/teams.js"
+  local_path = "js/match/teams.js"
