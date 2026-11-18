@@ -17,6 +17,32 @@
 </head>
 <body>
   <canvas id="game"></canvas>
+  <canvas id="matchCanvas" class="hidden"></canvas>
+
+  <!-- 11-a-side match HUD -->
+  <div id="matchHud" class="hidden">
+    <div class="mh-top">
+      <button id="matchPauseBtn" class="icon-btn" aria-label="Pause">❚❚</button>
+      <div class="mh-board">
+        <span class="kitdot" id="mhHomeKit"></span><span id="mhHome"></span>
+        <b id="mhScore">0 – 0</b>
+        <span id="mhAway"></span><span class="kitdot" id="mhAwayKit"></span>
+      </div>
+      <div class="mh-clock" id="mhClock">1'</div>
+    </div>
+    <div id="mBanner" class="banner"><div class="banner-main"></div><div class="banner-sub"></div></div>
+    <div id="mHint" class="hint"></div>
+  </div>
+  <section id="matchPause" class="screen modal hidden">
+    <h2>Paused</h2>
+    <div class="howto">
+      <div class="tip"><b>👆 Tap a team-mate</b><span>to pass to them. Tap open space to play the ball into it.</span></div>
+      <div class="tip"><b>💨 Swipe</b><span>with the ball to shoot (towards goal) or hoof it. Without the ball, swipe to slide tackle.</span></div>
+      <div class="tip"><b>✋ Hold your finger</b><span>on the pitch and your player (yellow ring) runs there.</span></div>
+    </div>
+    <button class="big-btn primary" id="mResume">Resume</button>
+    <button class="big-btn alt" id="mQuit">Quit match</button>
+  </section>
 
   <!-- In-game HUD -->
   <div id="hud" class="hidden">
@@ -40,8 +66,12 @@
       <p class="tag">Swipe. Curl. Score.</p>
     </div>
     <div class="menu-buttons">
-      <button class="big-btn primary" data-go="cupTeams">🏆 Penalty Cup<small>Win the tournament</small></button>
-      <button class="big-btn" data-go="practiceSetup">⚽ Practice<small>Free shooting</small></button>
+      <button class="big-btn primary" data-go="matchMenu">⚽ Play Match<small>11-a-side · leagues &amp; cups</small></button>
+      <button class="big-btn continue hidden" id="continueComp">▶ Continue<small id="continueSub"></small></button>
+      <div class="row2">
+        <button class="big-btn" data-go="cupTeams">🏆 Penalty Cup<small>Shoot-out tournament</small></button>
+        <button class="big-btn" data-go="practiceSetup">🎯 Practice<small>Free shooting</small></button>
+      </div>
       <div class="row2">
         <button class="big-btn alt" data-start="target">🎯 Targets<small id="bestTarget">60 s challenge</small></button>
         <button class="big-btn alt" data-start="crossbar">🥅 Crossbar<small id="bestCrossbar">10 balls</small></button>
@@ -53,6 +83,64 @@
       <button class="link-btn" data-go="howto">How to play</button>
       <button class="link-btn" data-go="settings">Settings</button>
     </div>
+  </section>
+
+  <!-- Match menu -->
+  <section id="matchMenu" class="screen hidden">
+    <h2>Play Match</h2>
+    <div class="menu-buttons">
+      <button class="big-btn primary" data-comp="league">🦁 Premier League<small>A full season · 20 clubs</small></button>
+      <button class="big-btn" data-comp="ucl">⭐ Champions League<small>Groups, then knockouts</small></button>
+      <button class="big-btn" data-comp="wc">🌍 World Cup<small>16 nations</small></button>
+      <button class="big-btn alt" data-comp="friendly">🤝 Friendly<small>Any two teams</small></button>
+    </div>
+    <label class="field-label">Difficulty</label>
+    <div class="chips" data-group="matchDiff">
+      <button data-v="easy" class="on">Easy</button>
+      <button data-v="medium">Medium</button>
+      <button data-v="hard">Hard</button>
+    </div>
+    <label class="field-label">Match length</label>
+    <div class="chips" data-group="matchLen">
+      <button data-v="60">2 min</button>
+      <button data-v="120" class="on">4 min</button>
+      <button data-v="240">8 min</button>
+    </div>
+    <button class="link-btn back" data-go="menu">‹ Back</button>
+  </section>
+
+  <!-- Team picker -->
+  <section id="teamPick" class="screen hidden top">
+    <h2 id="pickTitle">Choose your team</h2>
+    <p class="sub" id="pickSub"></p>
+    <div class="chips hidden" id="pickTabs">
+      <button data-v="clubs" class="on">Clubs</button>
+      <button data-v="nations">Nations</button>
+    </div>
+    <div id="pickGrid" class="team-grid"></div>
+    <button class="link-btn back" id="pickBack">‹ Back</button>
+  </section>
+
+  <!-- Line-up -->
+  <section id="lineup" class="screen hidden top">
+    <h2 id="lineupTitle">Line-up</h2>
+    <p class="sub">Tap a player, then tap another to swap them.</p>
+    <div class="chips" id="formChips"></div>
+    <div id="xiList" class="squad-list"></div>
+    <label class="field-label">Substitutes</label>
+    <div id="benchList" class="squad-list"></div>
+    <button class="big-btn primary sticky" id="lineupDone">Done</button>
+  </section>
+
+  <!-- Competition hub -->
+  <section id="compHub" class="screen hidden top">
+    <h2 id="hubTitle">Premier League</h2>
+    <div id="hubTeam" class="hub-team"></div>
+    <div id="hubNext" class="hub-card"></div>
+    <div id="hubTable"></div>
+    <div id="hubResults"></div>
+    <button class="link-btn back" id="hubMenu">‹ Main menu</button>
+    <button class="link-btn" id="hubQuit">Abandon competition</button>
   </section>
 
   <!-- Practice setup -->
@@ -131,7 +219,8 @@
   <section id="howto" class="screen hidden">
     <h2>How to play</h2>
     <div class="howto">
-      <div class="tip"><b>👆 Swipe to shoot</b><span>Put your finger on the ball and flick towards where you want it to go. A short swipe keeps it low, a long one goes high.</span></div>
+      <div class="tip"><b>⚽ In a match</b><span>Tap a team-mate to pass. Swipe towards goal to shoot. Hold your finger on the pitch to run there. Without the ball, swipe to slide tackle.</span></div>
+      <div class="tip"><b>👆 Swipe to shoot</b><span>In the shooting games, put your finger on the ball and flick towards where you want it to go. A short swipe keeps it low, a long one goes high.</span></div>
       <div class="tip"><b>💨 Speed = power</b><span>Flick fast to blast it past the keeper — but too hard and it might fly over.</span></div>
       <div class="tip"><b>🌀 Curve it</b><span>Bend your swipe like a banana to curl the ball round the wall.</span></div>
       <div class="tip"><b>🧤 Be the keeper</b><span>In the Penalty Cup you also save penalties: tap the spot in the goal where you want to dive. Tap early to guess, or late to react!</span></div>

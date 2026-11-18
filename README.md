@@ -7,15 +7,26 @@ No build step and no dependencies: plain HTML, CSS and JavaScript modules drawin
 
 | Mode | What you do |
 | --- | --- |
+| **Play Match** | Full 11-a-side matches seen from above. Play a **Friendly** between any two teams, a whole **Premier League** season (20 clubs, 19 matchdays, league table), the **Champions League** (16 clubs: groups, then quarter-finals, semis and final) or the **World Cup** (16 nations). Pick your line-up and formation before each match. Knockout draws go to a penalty shoot-out you take yourself. You can also simulate a match instead of playing it. |
 | **Practice** | Shoot freely from the penalty spot, the edge of the box or a free-kick position with a wall. Choose no keeper or an Easy, Medium or Hard keeper. |
 | **Penalty Cup** | Pick a nation and win a quarter-final, semi-final and final, each decided by a penalty shoot-out. You take your team's penalties and also play in goal for the other side's kicks. Difficulty: Amateur, Pro or World Class. |
 | **Target Challenge** | 60 seconds to hit as many targets as you can. Hitting targets in a row builds a combo, and each target hit adds 2 seconds. |
 | **Crossbar Challenge** | 10 balls. Hitting the bar is worth 3 points and a post is worth 1. |
 | **Free Kick Challenge** | 10 free kicks against a wall and a keeper. Top-corner goals score double. |
 
-Best scores and cups won are saved on the device.
+Best scores, trophies and your current competition are saved on the device.
+
+Squads use real player names from the 2025-26 season as best known. Transfers will make some of them out of date; they live in `js/match/teams.js` and are easy to edit. There are no official logos or badges.
 
 ## Controls
+
+**In a match**
+- **Pass:** tap a team-mate. Tap open space to play the ball into it for the nearest team-mate.
+- **Shoot:** swipe towards the goal. A faster swipe is a harder shot. Swiping away from goal hoofs the ball upfield.
+- **Run:** hold your finger on the pitch; your player (yellow ring) runs towards it. If you let go, they keep dribbling towards goal on their own.
+- **Defend:** you control the player nearest the ball, who presses automatically. Swipe to slide tackle, or tap a team-mate to switch to them.
+
+**Shooting modes and Penalty Cup**
 
 - **Shoot:** swipe from the ball towards the spot you want to hit. A short swipe keeps the shot low and a long swipe sends it high.
 - **Power:** a faster swipe gives a harder shot. Hit it too hard and it can fly over the bar.
@@ -43,7 +54,12 @@ js/render.js          canvas renderer: perspective camera, stadium, pitch, playe
 js/game.js            game loop, swipe input, shot and save logic, effects
 js/modes.js           Practice, challenges, Penalty Cup bracket and shoot-out rules
 js/audio.js           synthesised sound effects (Web Audio, no audio files)
-js/main.js            menus, settings, saved records
+js/main.js            menus, settings, saved records, match/competition screens
+js/match/teams.js     clubs, national teams, squads, formations, kits
+js/match/engine.js    11-a-side simulation: player AI, passing, tackling, keepers, set pieces
+js/match/render.js    top-down match renderer
+js/match/mode.js      match screen: touch input, HUD, sounds
+js/match/competitions.js  league and cup formats, tables, simulated results
 sw.js                 service worker for offline play
 manifest.webmanifest  PWA manifest
 ```

@@ -197,8 +197,8 @@ export class Game {
   frame(now) {
     const dt = Math.min(0.05, (now - this.lastFrame) / 1000);
     this.lastFrame = now;
-    if (!this.paused) this.update(dt);
-    this.r.draw(this);
+    if (!this.paused && !this.sleep) this.update(dt);
+    if (!this.sleep) this.r.draw(this);
     requestAnimationFrame((t) => this.frame(t));
   }
 

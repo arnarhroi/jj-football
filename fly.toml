@@ -69,3 +69,23 @@ primary_region = "ams"
 [[files]]
   guest_path = "/usr/share/nginx/html/icons/icon.svg"
   local_path = "icons/icon.svg"
+
+[[files]]
+  guest_path = "/usr/share/nginx/html/js/match/competitions.js"
+  local_path = "js/match/competitions.js"
+
+[[files]]
+  guest_path = "/usr/share/nginx/html/js/match/engine.js"
+  local_path = "js/match/engine.js"
+
+[[files]]
+  guest_path = "/usr/share/nginx/html/js/match/mode.js"
+  local_path = "js/match/mode.js"
+
+[[files]]
+  guest_path = "/usr/share/nginx/html/js/match/render.js"
+  local_path = "js/match/render.js"
+
+[[files]]
+  guest_path = "/usr/share/nginx/html/js/match/teams.js"
+  local_path = "js/match/teams.js"
