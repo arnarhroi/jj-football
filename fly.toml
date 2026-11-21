@@ -89,3 +89,7 @@ primary_region = "ams"
 [[files]]
   guest_path = "/usr/share/nginx/html/js/match/teams.js"
   local_path = "js/match/teams.js"
+
+[[files]]
+  guest_path = "/usr/share/nginx/html/js/storage.js"
+  local_path = "js/storage.js"

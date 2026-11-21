@@ -14,7 +14,16 @@ No build step and no dependencies: plain HTML, CSS and JavaScript modules drawin
 | **Crossbar Challenge** | 10 balls. Hitting the bar is worth 3 points and a post is worth 1. |
 | **Free Kick Challenge** | 10 free kicks against a wall and a keeper. Top-corner goals score double. |
 
-Best scores, trophies and your current competition are saved on the device.
+## Players and saved progress
+
+Progress is saved automatically in the browser, so you can close the game and carry on days later on the same device.
+
+- Each **player** (tap the 👤 name at the top of the menu) has their own trophies, best scores, Premier League / Champions League / World Cup progress and Penalty Cup run. Sound and vibration settings are shared.
+- **New player** gives a fresh start without touching anyone else's progress. Players can be **renamed**, **switched** between and **deleted**.
+- **Save code** copies a player's progress as a text code; **Load code** on another phone or computer adds it there as a new player.
+- Saves made before players existed are moved into "Player 1" automatically.
+
+Browsers can clear website data: in private/incognito windows it's gone when the window closes, and Safari on iPhone may clear it after about a week without visiting the site. Adding the game to the home screen avoids that, and a save code works as a backup.
 
 Squads use real player names from the 2025-26 season as best known. Transfers will make some of them out of date; they live in `js/match/teams.js` and are easy to edit. There are no official logos or badges.
 
@@ -54,7 +63,8 @@ js/render.js          canvas renderer: perspective camera, stadium, pitch, playe
 js/game.js            game loop, swipe input, shot and save logic, effects
 js/modes.js           Practice, challenges, Penalty Cup bracket and shoot-out rules
 js/audio.js           synthesised sound effects (Web Audio, no audio files)
-js/main.js            menus, settings, saved records, match/competition screens
+js/main.js            menus, settings, match/competition screens, players screen
+js/storage.js         player profiles saved in localStorage, save codes
 js/match/teams.js     clubs, national teams, squads, formations, kits
 js/match/engine.js    11-a-side simulation: player AI, passing, tackling, keepers, set pieces
 js/match/render.js    top-down match renderer
