@@ -7,8 +7,11 @@ const $ = (id) => document.getElementById(id);
 
 export class MatchScreen {
   constructor() {
-    this.cv = $('matchCanvas');
-    this.r = new MatchRenderer(this.cv);
+    this.cv = $('matchCanvas');       // 2D pitch, or the transparent overlay in 3D
+    this.cv3d = $('match3d');         // WebGL canvas for the 3D view
+    this.r2d = new MatchRenderer(this.cv);
+    this.r3d = null;
+    this.r = this.r2d;
     this.active = false;
     this.paused = false;
     this.ptr = null;
@@ -24,8 +27,26 @@ export class MatchScreen {
     document.addEventListener('visibilitychange', () => { if (document.hidden && this.active) this.pause(true); });
   }
 
-  /** opts: match options (see Match) + { settings, onEnd(result), onQuit() } */
-  start(opts) {
+  /** Load the 3D renderer on first use. Returns null if WebGL isn't available. */
+  async get3D() {
+    if (this.r3d) return this.r3d;
+    if (this.no3d) return null;
+    try {
+      const mod = await import('./render3d.js');
+      this.r3d = new mod.Match3DRenderer(this.cv3d, this.cv);
+    } catch (err) {
+      console.warn('3D view unavailable, using 2D', err);
+      this.no3d = true;
+    }
+    return this.r3d;
+  }
+
+  /** opts: match options (see Match) + { settings, view: '2d' | '3d', onEnd(result), onQuit() } */
+  async start(opts) {
+    this.r = (opts.view === '3d' && await this.get3D()) || this.r2d;
+    const is3d = this.r !== this.r2d;
+    this.cv3d.classList.toggle('hidden', !is3d);
+    this.cv.classList.toggle('overlay', is3d);
     this.settings = opts.settings;
     this.onEnd = opts.onEnd; this.onQuit = opts.onQuit;
     this.m = new Match({ ...opts, onEvent: (t, d) => this.event(t, d) });
@@ -49,6 +70,7 @@ export class MatchScreen {
   stop() {
     this.active = false;
     this.cv.classList.add('hidden');
+    this.cv3d.classList.add('hidden');
     $('matchHud').classList.add('hidden');
     $('matchPause').classList.add('hidden');
     crowdLevel(0.05);
@@ -175,7 +197,7 @@ export class MatchScreen {
     const p = this.pt(e);
     const dx = p.x - P.x0, dy = p.y - P.y0, d = Math.hypot(dx, dy), dur = Math.max(0.04, (p.t - P.t0) / 1000);
     if (d < 16 && dur < 0.35) {
-      const w = this.r.toWorld(p.x, p.y);
+      const w = this.r.tapPoint ? this.r.tapPoint(p.x, p.y, this.m) : this.r.toWorld(p.x, p.y);
       this.m.userTap(w);
       this.uiState.tapMark = { x: w.x, y: w.y, t: 1 };
       return;
@@ -183,7 +205,10 @@ export class MatchScreen {
     if (d >= 30) {
       const sp = (d / Math.min(this.r.W, this.r.H)) / dur; // screen widths per second
       const power = Math.max(0, Math.min(1, (sp - 0.5) / 3.2));
-      this.m.userSwipe(dx / d, dy / d, power);
+      // turn the screen swipe into a direction on the pitch (matters when the camera is in 3D)
+      const a = this.r.toWorld(P.x0, P.y0), c = this.r.toWorld(p.x, p.y);
+      const wl = Math.hypot(c.x - a.x, c.y - a.y);
+      if (wl > 1e-3) this.m.userSwipe((c.x - a.x) / wl, (c.y - a.y) / wl, power);
     }
   }
 

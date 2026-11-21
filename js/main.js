@@ -18,7 +18,7 @@ function load(key, def) {
 }
 function save(key, v) { try { localStorage.setItem(key, JSON.stringify(v)); } catch { /* private mode */ } }
 
-const settings = load('jjf.settings', { sound: true, vibrate: true, seenHowto: false });
+const settings = load('jjf.settings', { sound: true, vibrate: true, seenHowto: false, matchView: '3d' });
 // Records and progress belong to the active player profile (see storage.js).
 initProfiles();
 const saved = profileData();
@@ -116,15 +116,19 @@ document.addEventListener('click', (e) => {
 });
 
 // chip groups
-const choice = { pos: 'penalty', keeper: 'medium', cupDiff: 'medium', matchDiff: 'easy', matchLen: '120' };
+const choice = { pos: 'penalty', keeper: 'medium', cupDiff: 'medium', matchDiff: 'easy', matchLen: '120', matchView: settings.matchView };
 document.querySelectorAll('.chips').forEach((grp) => {
   grp.addEventListener('click', (e) => {
     const b = e.target.closest('button'); if (!b) return;
     grp.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
     choice[grp.dataset.group] = b.dataset.v;
+    if (grp.dataset.group === 'matchView') { settings.matchView = b.dataset.v; save('jjf.settings', settings); }
     sfx('click');
   });
 });
+
+// the 2D/3D choice is remembered on this device
+document.querySelectorAll('[data-group=matchView] button').forEach((x) => x.classList.toggle('on', x.dataset.v === settings.matchView));
 
 // ---------------- modes ----------------
 let restart = null;
@@ -444,7 +448,7 @@ function launchMatch({ user, opp, lineup, userHome, difficulty, halfSeconds, onE
   enterMatchView();
   matchScreen.start({
     home: user, away: opp, homeXI: lineup.xi, awayXI: ol.xi, homeFormation: lineup.formation, awayFormation: of,
-    kits, difficulty, halfSeconds, settings,
+    kits, difficulty, halfSeconds, settings, view: settings.matchView,
     onEnd: (r) => { leaveMatchView(); onEnd(r); },
     onQuit: () => { leaveMatchView(); onQuit(); },
   });

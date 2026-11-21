@@ -17,6 +17,7 @@
 </head>
 <body>
   <canvas id="game"></canvas>
+  <canvas id="match3d" class="hidden"></canvas>
   <canvas id="matchCanvas" class="hidden"></canvas>
 
   <!-- 11-a-side match HUD -->
@@ -100,6 +101,11 @@
       <button data-v="easy" class="on">Easy</button>
       <button data-v="medium">Medium</button>
       <button data-v="hard">Hard</button>
+    </div>
+    <label class="field-label">View</label>
+    <div class="chips" data-group="matchView">
+      <button data-v="3d" class="on">3D</button>
+      <button data-v="2d">2D (from above)</button>
     </div>
     <label class="field-label">Match length</label>
     <div class="chips" data-group="matchLen">
