@@ -298,3 +298,7 @@ canvas#matchCanvas { position: fixed; inset: 0; z-index: 2; touch-action: none; 
 .text-input:focus { outline: none; border-color: var(--accent); }
 .text-area { font-size: 12px; font-weight: 500; font-family: ui-monospace, Menlo, monospace; resize: none; word-break: break-all; }
 .dlg-error { margin: 0; color: var(--bad); font-weight: 700; text-align: center; min-height: 1em; }
+
+/* 3D match view: WebGL canvas underneath, the 2D canvas becomes a transparent overlay */
+canvas#match3d { position: fixed; inset: 0; z-index: 1; display: block; touch-action: none; background: #0a1630; }
+canvas#matchCanvas.overlay { background: transparent; }

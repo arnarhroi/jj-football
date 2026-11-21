@@ -7,7 +7,7 @@ No build step and no dependencies: plain HTML, CSS and JavaScript modules drawin
 
 | Mode | What you do |
 | --- | --- |
-| **Play Match** | Full 11-a-side matches seen from above. Play a **Friendly** between any two teams, a whole **Premier League** season (20 clubs, 19 matchdays, league table), the **Champions League** (16 clubs: groups, then quarter-finals, semis and final) or the **World Cup** (16 nations). Pick your line-up and formation before each match. Knockout draws go to a penalty shoot-out you take yourself. You can also simulate a match instead of playing it. |
+| **Play Match** | Full 11-a-side matches in **3D** (camera behind your team in portrait, TV-style side camera in landscape) or **2D** from above; choose on the Play Match screen. Play a **Friendly** between any two teams, a whole **Premier League** season (20 clubs, 19 matchdays, league table), the **Champions League** (16 clubs: groups, then quarter-finals, semis and final) or the **World Cup** (16 nations). Pick your line-up and formation before each match. Knockout draws go to a penalty shoot-out you take yourself. You can also simulate a match instead of playing it. |
 | **Practice** | Shoot freely from the penalty spot, the edge of the box or a free-kick position with a wall. Choose no keeper or an Easy, Medium or Hard keeper. |
 | **Penalty Cup** | Pick a nation and win a quarter-final, semi-final and final, each decided by a penalty shoot-out. You take your team's penalties and also play in goal for the other side's kicks. Difficulty: Amateur, Pro or World Class. |
 | **Target Challenge** | 60 seconds to hit as many targets as you can. Hitting targets in a row builds a combo, and each target hit adds 2 seconds. |
@@ -67,7 +67,9 @@ js/main.js            menus, settings, match/competition screens, players screen
 js/storage.js         player profiles saved in localStorage, save codes
 js/match/teams.js     clubs, national teams, squads, formations, kits
 js/match/engine.js    11-a-side simulation: player AI, passing, tackling, keepers, set pieces
-js/match/render.js    top-down match renderer
+js/match/render.js    top-down (2D) match renderer
+js/match/render3d.js  3D match renderer (Three.js): stadium, animated players, cameras
+js/vendor/            Three.js r170 (MIT licence, see three.LICENSE), bundled so the game works offline
 js/match/mode.js      match screen: touch input, HUD, sounds
 js/match/competitions.js  league and cup formats, tables, simulated results
 sw.js                 service worker for offline play
@@ -76,14 +78,14 @@ manifest.webmanifest  PWA manifest
 
 ## Deploy to Fly.io
 
-`fly.toml` serves the game with a stock nginx image. Fly copies the game files into the machine, so no Docker build is needed.
+`fly.toml` and the `Dockerfile` serve the game with nginx. Fly builds the image on its remote builder, so you don't need Docker installed.
 
 ```sh
 fly launch --no-deploy --copy-config --name <your-app-name>   # once; skip if the app already exists
 fly deploy
 ```
 
-The game is then live at `https://<your-app-name>.fly.dev`. If you add a new file to the game, also list it under `[[files]]` in `fly.toml`.
+The game is then live at `https://<your-app-name>.fly.dev`.
 
 ### Automatic deploys with GitHub Actions
 
