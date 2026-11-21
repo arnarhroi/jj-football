@@ -60,6 +60,7 @@
 
   <!-- Main menu -->
   <section id="menu" class="screen">
+    <button class="profile-pill" data-go="profiles" aria-label="Switch player">👤 <span id="profileName">Player 1</span> <small>▾</small></button>
     <div class="logo">
       <div class="logo-ball"></div>
       <h1>JJ <span>FOOTBALL</span></h1>
@@ -141,6 +142,19 @@
     <div id="hubResults"></div>
     <button class="link-btn back" id="hubMenu">‹ Main menu</button>
     <button class="link-btn" id="hubQuit">Abandon competition</button>
+  </section>
+
+  <!-- Player profiles -->
+  <section id="profiles" class="screen hidden top">
+    <h2>Players</h2>
+    <p class="sub">Each player has their own trophies, best scores and league &amp; cup progress. Everything is saved on this device.</p>
+    <div id="profileList" class="profile-list"></div>
+    <button class="big-btn primary" id="newProfile">＋ New player<small>Start again from the beginning</small></button>
+    <div class="row2">
+      <button class="big-btn alt" id="exportProfile">📤 Save code<small>Move to another device</small></button>
+      <button class="big-btn alt" id="importProfile">📥 Load code<small>From another device</small></button>
+    </div>
+    <button class="link-btn back" data-go="menu">‹ Back</button>
   </section>
 
   <!-- Practice setup -->
@@ -226,6 +240,17 @@
       <div class="tip"><b>🧤 Be the keeper</b><span>In the Penalty Cup you also save penalties: tap the spot in the goal where you want to dive. Tap early to guess, or late to react!</span></div>
     </div>
     <button class="big-btn primary" data-go="menu">Got it!</button>
+  </section>
+
+  <!-- Small text dialog (names, save codes) -->
+  <section id="dialog" class="screen modal hidden">
+    <h2 id="dlgTitle"></h2>
+    <p class="sub" id="dlgText"></p>
+    <input id="dlgInput" class="text-input" maxlength="24" autocomplete="off" autocapitalize="words" enterkeyhint="done">
+    <textarea id="dlgArea" class="text-input text-area" rows="6" spellcheck="false" autocomplete="off"></textarea>
+    <p class="dlg-error" id="dlgError"></p>
+    <button class="big-btn primary" id="dlgOk">OK</button>
+    <button class="link-btn" id="dlgCancel">Cancel</button>
   </section>
 
   <script type="module" src="js/main.js"></script>

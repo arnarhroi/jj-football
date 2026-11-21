@@ -3,6 +3,10 @@ import { initAudio, setSound, sfx } from './audio.js';
 import { KEEPER_SKILL } from './world.js';
 import { TEAMS, PracticeMode, TargetMode, RoundsMode, Cup, ShootoutMode, ROUND_NAMES } from './modes.js';
 import { MatchScreen } from './match/mode.js';
+import {
+  initProfiles, listProfiles, activeProfile, profileData, saveProfilePart, createProfile, switchProfile,
+  renameProfile, deleteProfile, resetProfile, exportCode, importCode, DEFAULT_STATS,
+} from './storage.js';
 import { CLUBS, NATIONS, FORMATIONS, teamById, stars, defaultLineup, matchKits } from './match/teams.js';
 import { COMPETITIONS, newCompetition, nextFixture, recordResult, simulateUserMatch, sortTable } from './match/competitions.js';
 
@@ -15,7 +19,11 @@ function load(key, def) {
 function save(key, v) { try { localStorage.setItem(key, JSON.stringify(v)); } catch { /* private mode */ } }
 
 const settings = load('jjf.settings', { sound: true, vibrate: true, seenHowto: false });
-const stats = load('jjf.stats', { cups: 0, target: 0, crossbar: 0, freekick: 0 });
+// Records and progress belong to the active player profile (see storage.js).
+initProfiles();
+const saved = profileData();
+const stats = saved.stats;
+const saveStats = () => saveProfilePart('stats', stats);
 setSound(settings.sound);
 
 const game = new Game($('game'), settings);
@@ -63,7 +71,7 @@ function flag(t) {
 }
 
 // ---------------- screens ----------------
-const SCREENS = ['menu', 'practiceSetup', 'cupTeams', 'bracket', 'results', 'pause', 'settings', 'howto', 'matchMenu', 'teamPick', 'lineup', 'compHub'];
+const SCREENS = ['menu', 'practiceSetup', 'cupTeams', 'bracket', 'results', 'pause', 'settings', 'howto', 'matchMenu', 'teamPick', 'lineup', 'compHub', 'profiles'];
 function show(id) {
   for (const s of SCREENS) $(s).classList.toggle('hidden', s !== id);
   const inGame = id === null || id === 'pause';
@@ -72,6 +80,7 @@ function show(id) {
 }
 
 function refreshMenu() {
+  $('profileName').textContent = activeProfile().name;
   const n = stats.cups + (stats.titles || 0);
   $('trophyCount').textContent = `🏆 ${n} troph${n === 1 ? 'y' : 'ies'}`;
   const cc = typeof comp !== 'undefined' && comp;
@@ -98,6 +107,8 @@ document.addEventListener('click', (e) => {
     initAudio(); sfx('click');
     const target = go.dataset.go;
     if (target === 'menu') idleScene();
+    if (target === 'cupTeams' && cup && cup.alive && !cup.won) { showBracket(); return; }
+    if (target === 'profiles') { showProfiles(); return; }
     show(target);
   }
   const st = e.target.closest('[data-start]');
@@ -138,7 +149,7 @@ function startChallenge(kind) {
 function showResults(r, retry) {
   const prev = stats[r.key] || 0;
   const isBest = r.score > prev;
-  if (isBest) { stats[r.key] = r.score; save('jjf.stats', stats); }
+  if (isBest) { stats[r.key] = r.score; saveStats(); }
   $('resultsIcon').textContent = isBest && r.score > 0 ? '🌟' : '🏁';
   $('resultsTitle').textContent = r.title;
   $('resultsScore').textContent = r.score;
@@ -153,7 +164,14 @@ function showResults(r, retry) {
 }
 
 // ---------------- Penalty Cup ----------------
-let selectedTeam = null, cup = null;
+let selectedTeam = null, cup = restoreCup(saved.cup);
+
+function restoreCup(d) {
+  const user = d && TEAMS.find((t) => t.id === d.user);
+  if (!user || !Array.isArray(d.rounds) || !d.rounds[0] || d.rounds[0].some((id) => !TEAMS.some((t) => t.id === id))) return null;
+  return Object.assign(Object.create(Cup.prototype), d, { user });
+}
+const saveCup = () => saveProfilePart('cup', cup ? { ...cup, user: cup.user.id } : null);
 
 function buildTeamGrid() {
   const grid = $('teamGrid');
@@ -177,6 +195,7 @@ $('startCup').onclick = () => {
   if (!selectedTeam) return;
   sfx('click');
   cup = new Cup(selectedTeam, choice.cupDiff);
+  saveCup();
   showBracket();
 };
 
@@ -206,7 +225,7 @@ function showBracket() {
   if (cup.won || !cup.alive) {
     $('bracketTitle').textContent = cup.won ? 'Champions!' : 'Knocked out';
     $('playMatch').textContent = 'Back to menu';
-    $('playMatch').onclick = () => { sfx('click'); idleScene(); show('menu'); };
+    $('playMatch').onclick = () => { sfx('click'); cup = null; saveCup(); idleScene(); show('menu'); };
     $('quitCup').classList.add('hidden');
   } else {
     const opp = cup.currentOpponent();
@@ -218,14 +237,18 @@ function showBracket() {
   show('bracket');
 }
 
-$('quitCup').onclick = () => { sfx('click'); cup = null; idleScene(); show('menu'); };
+$('quitCup').onclick = () => {
+  if (!confirm('Quit this Penalty Cup? Your progress in it will be lost.')) return;
+  sfx('click'); cup = null; saveCup(); idleScene(); show('menu');
+};
 
 function startMatch() {
   play(() => new ShootoutMode(ui, cup, (su, so) => {
     const round = cup.round;
     cup.recordUserMatch(su, so);
+    saveCup();
     if (cup.won) {
-      stats.cups++; save('jjf.stats', stats);
+      stats.cups++; saveStats();
       sfx('win');
       $('resultsIcon').textContent = '🏆';
       $('resultsTitle').textContent = `${cup.user.name} are champions!`;
@@ -242,7 +265,7 @@ function startMatch() {
       $('resultsDetail').textContent = `Beaten on penalties. Keep practising!`;
       $('resultsBest').textContent = '';
       $('resultsRetry').textContent = 'Try again';
-      $('resultsRetry').onclick = () => { sfx('click'); cup = new Cup(cup.user, cup.difficulty); showBracket(); };
+      $('resultsRetry').onclick = () => { sfx('click'); cup = new Cup(cup.user, cup.difficulty); saveCup(); showBracket(); };
     } else {
       sfx('win');
       $('resultsIcon').textContent = '✅';
@@ -273,9 +296,9 @@ $('optVibrate').checked = settings.vibrate;
 $('optSound').onchange = (e) => { settings.sound = e.target.checked; setSound(settings.sound); save('jjf.settings', settings); initAudio(); sfx('click'); };
 $('optVibrate').onchange = (e) => { settings.vibrate = e.target.checked; save('jjf.settings', settings); if (settings.vibrate) navigator.vibrate?.(30); };
 $('resetStats').onclick = () => {
-  if (!confirm('Reset all records and trophies?')) return;
-  Object.assign(stats, { cups: 0, titles: 0, target: 0, crossbar: 0, freekick: 0 });
-  save('jjf.stats', stats);
+  if (!confirm(`Reset ${activeProfile().name}'s records and trophies? League and cup progress is kept.`)) return;
+  Object.assign(stats, DEFAULT_STATS);
+  saveStats();
   sfx('click');
 };
 
@@ -290,8 +313,18 @@ document.addEventListener('visibilitychange', () => {
 // ======================================================================
 const matchScreen = new MatchScreen();
 window.__matchScreen = matchScreen; // handy for debugging from the console
-let comp = (() => { try { return JSON.parse(localStorage.getItem('jjf.comp') || 'null'); } catch { return null; } })();
-const saveComp = () => { try { comp ? localStorage.setItem('jjf.comp', JSON.stringify(comp)) : localStorage.removeItem('jjf.comp'); } catch { /* ignore */ } };
+let comp = validComp(saved.comp) ? saved.comp : null;
+const saveComp = () => saveProfilePart('comp', comp);
+
+/** Guard against damaged saves (or save codes) before trusting them. */
+function validComp(c) {
+  if (!c || typeof c !== 'object' || !COMPETITIONS[c.key] || !teamById(c.user)) return false;
+  if (!c.lineup || !FORMATIONS[c.lineup.formation] || !Array.isArray(c.lineup.xi) || c.lineup.xi.length !== 11) return false;
+  if (!Array.isArray(c.results) || typeof c.scorers !== 'object') return false;
+  if (c.kind === 'league') return Array.isArray(c.rounds) && Array.isArray(c.table);
+  if (c.kind === 'cup') return Array.isArray(c.groups) && c.groups.length === 4;
+  return false;
+}
 let pensActive = false;
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -476,7 +509,7 @@ function showHub() {
 
   // trophy bookkeeping
   if (comp.done && comp.champion === comp.user && !comp.counted) {
-    comp.counted = true; stats.titles = (stats.titles || 0) + 1; save('jjf.stats', stats); saveComp();
+    comp.counted = true; stats.titles = (stats.titles || 0) + 1; saveStats(); saveComp();
   }
 
   const fx = nextFixture(comp);
@@ -628,11 +661,147 @@ document.querySelectorAll('[data-comp]').forEach((b) => b.addEventListener('clic
   const key = b.dataset.comp;
   if (key === 'friendly') startFriendlyFlow(); else startCompetitionFlow(key);
 }));
-$('continueComp').onclick = () => { initAudio(); sfx('click'); showHub(); };
+$('continueComp').onclick = () => {
+  initAudio(); sfx('click');
+  try { showHub(); } catch {
+    // a damaged save (e.g. from a hand-edited save code) shouldn't lock the player out
+    comp = null; saveComp();
+    alert('The saved league/cup progress was damaged and has been cleared. Your trophies and records are safe.');
+    idleScene(); show('menu');
+  }
+};
 $('hubMenu').onclick = () => { sfx('click'); idleScene(); show('menu'); };
 $('hubQuit').onclick = () => {
   if (!confirm('Abandon this competition? Progress will be lost.')) return;
   comp = null; saveComp(); sfx('click'); show('matchMenu');
+};
+
+// ======================================================================
+// Player profiles: create, switch, rename, delete, move between devices
+// ======================================================================
+
+/** Promise-based dialog. Returns the entered text (or '' for plain confirms), or null if cancelled. */
+function dialog({ title, text = '', input = null, area = null, ok = 'OK', cancel = 'Cancel', validate = null }) {
+  return new Promise((resolve) => {
+    const inp = $('dlgInput'), ta = $('dlgArea');
+    $('dlgTitle').textContent = title;
+    $('dlgText').textContent = text;
+    $('dlgError').textContent = '';
+    inp.classList.toggle('hidden', !input); ta.classList.toggle('hidden', !area);
+    if (input) { inp.value = input.value || ''; inp.placeholder = input.placeholder || ''; }
+    if (area) { ta.value = area.value || ''; ta.readOnly = !!area.readOnly; ta.placeholder = area.placeholder || ''; }
+    $('dlgOk').textContent = ok;
+    $('dlgCancel').textContent = cancel;
+    $('dlgCancel').classList.toggle('hidden', !cancel);
+    $('dialog').classList.remove('hidden');
+    const done = (v) => { $('dialog').classList.add('hidden'); inp.onkeydown = null; resolve(v); };
+    $('dlgOk').onclick = async () => {
+      sfx('click');
+      const v = input ? inp.value : area ? ta.value : '';
+      if (validate) {
+        const err = await validate(v);
+        if (err) { $('dlgError').textContent = err; return; }
+      }
+      done(v);
+    };
+    $('dlgCancel').onclick = () => { sfx('click'); done(null); };
+    inp.onkeydown = (e) => { if (e.key === 'Enter') $('dlgOk').click(); };
+    if (input) setTimeout(() => { inp.focus(); inp.select(); }, 50);
+    if (area && area.readOnly) setTimeout(() => { ta.focus(); ta.select(); }, 50);
+  });
+}
+
+function timeAgo(ts) {
+  const s = (Date.now() - ts) / 1000;
+  if (s < 60) return 'just now';
+  if (s < 3600) return `${Math.floor(s / 60)} min ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)} h ago`;
+  const d = Math.floor(s / 86400);
+  return d === 1 ? 'yesterday' : `${d} days ago`;
+}
+
+function profileSummary(id) {
+  const d = profileData(id);
+  const n = (d.stats.cups || 0) + (d.stats.titles || 0);
+  const bits = [`🏆 ${n} troph${n === 1 ? 'y' : 'ies'}`];
+  if (d.stats.target) bits.push(`🎯 ${d.stats.target}`);
+  const c = validComp(d.comp) ? d.comp : null;
+  let prog = '';
+  if (c) {
+    let label = 'finished';
+    try { const fx = c.done || c.out ? null : nextFixture(c); if (fx) label = fx.label; } catch { label = '?'; }
+    prog = `${COMPETITIONS[c.key].name} with ${esc(teamById(c.user).name)} · ${esc(label)}`;
+  }
+  return bits.join(' · ') + (prog ? `<br>${prog}` : '');
+}
+
+function showProfiles() {
+  const list = listProfiles();
+  const canDelete = list.length > 1;
+  $('profileList').innerHTML = list.map((p) => `
+    <div class="profile ${p.active ? 'active' : ''}" data-id="${esc(p.id)}">
+      <div class="p-head"><span class="p-name">${esc(p.name)}</span>${p.active ? '<span class="p-badge">PLAYING NOW</span>' : ''}</div>
+      <div class="p-info">${profileSummary(p.id)}<br>Last played ${timeAgo(p.updated)}</div>
+      <div class="p-btns">
+        ${p.active ? '' : '<button class="play" data-act="play">▶ Play as this player</button>'}
+        <button data-act="rename">✎ Rename</button>
+        ${canDelete ? '<button class="del" data-act="delete">🗑 Delete</button>' : ''}
+      </div>
+    </div>`).join('');
+  show('profiles');
+}
+
+/** Switching profile reloads the page so every screen picks up the new player's data cleanly. */
+function reloadAsProfile(id) {
+  switchProfile(id);
+  location.reload();
+}
+
+$('profileList').onclick = async (e) => {
+  const btn = e.target.closest('button[data-act]'); if (!btn) return;
+  sfx('click');
+  const id = btn.closest('.profile').dataset.id;
+  const p = listProfiles().find((x) => x.id === id);
+  if (!p) return;
+  if (btn.dataset.act === 'play') reloadAsProfile(id);
+  else if (btn.dataset.act === 'rename') {
+    const name = await dialog({ title: 'Rename player', input: { value: p.name, placeholder: 'Name' }, ok: 'Save',
+      validate: (v) => (v.trim() ? null : 'Type a name') });
+    if (name !== null) { renameProfile(id, name); refreshMenu(); showProfiles(); }
+  } else if (btn.dataset.act === 'delete') {
+    const yes = await dialog({ title: `Delete ${p.name}?`, text: 'All of their trophies, best scores and league progress will be gone for good.', ok: 'Delete' });
+    if (yes === null) return;
+    const wasActive = p.active;
+    deleteProfile(id);
+    if (wasActive) location.reload(); else showProfiles();
+  }
+};
+
+$('newProfile').onclick = async () => {
+  sfx('click');
+  const name = await dialog({ title: 'New player', text: 'A fresh start: no trophies, no records, no league in progress. Your other players stay as they are.',
+    input: { value: '', placeholder: `Player ${listProfiles().length + 1}` }, ok: 'Create' });
+  if (name === null) return;
+  const p = createProfile(name);
+  reloadAsProfile(p.id);
+};
+
+$('exportProfile').onclick = async () => {
+  sfx('click');
+  const code = exportCode();
+  try { await navigator.clipboard.writeText(code); } catch { /* the code is still shown to copy by hand */ }
+  await dialog({ title: `Save code for ${activeProfile().name}`,
+    text: 'Copied! Paste it into "Load code" on another phone or computer to carry on there. Anyone with this code gets a copy of this player.',
+    area: { value: code, readOnly: true }, ok: 'Done', cancel: '' });
+};
+
+$('importProfile').onclick = async () => {
+  sfx('click');
+  let created = null;
+  const v = await dialog({ title: 'Load a save code', text: 'Paste a save code from another device. It is added as a new player; nothing here is overwritten.',
+    area: { value: '', placeholder: 'JJF1.…' }, ok: 'Load',
+    validate: (code) => { try { created = importCode(code); return null; } catch (err) { return err.message; } } });
+  if (v !== null && created) reloadAsProfile(created.id);
 };
 
 // ---------------- boot ----------------

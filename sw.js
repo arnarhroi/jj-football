@@ -1,8 +1,8 @@
 // Offline support: cache-first for the app shell, refreshed in the background.
-const CACHE = 'jjf-v2';
+const CACHE = 'jjf-v3';
 const ASSETS = [
   './', 'index.html', 'css/style.css', 'manifest.webmanifest',
-  'js/main.js', 'js/game.js', 'js/world.js', 'js/render.js', 'js/audio.js', 'js/modes.js',
+  'js/main.js', 'js/storage.js', 'js/game.js', 'js/world.js', 'js/render.js', 'js/audio.js', 'js/modes.js',
   'js/match/teams.js', 'js/match/engine.js', 'js/match/render.js', 'js/match/mode.js', 'js/match/competitions.js',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
 ];
